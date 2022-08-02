@@ -5,5 +5,7 @@ O projeto visa criar uma inteligência artificial que se basea no histórico de 
 O desenvolvimento está sendo em python utilizando as bibliotecas:
 
 *yfinance: para obter os dados de ações
+
 *pytorch: para criar a rede neural e fazer o treinamento
+
 *além de numpy e pandas para lidar com os dados
