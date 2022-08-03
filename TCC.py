@@ -7,40 +7,40 @@ import pandas as pd
 import math
 import Grad as df
 import time
+import os
 
 def setBalance(sx,sy):
-    sx_r = np.array(sx[0][0])
-    sy_r = np.array(sy[0])
     n_1 = np.count_nonzero(sy == 1)
     n_2 = np.count_nonzero(sy == 2)
-    index = 0
+    index1 = 0
     index2 = 0
-
-    count = 0
-    for i in sy:
-        if(i == 2):
-            totalLen = int(15*len(sx)/100)
-            for j in range(int(totalLen/n_2)):
-                sy_r = np.append(sy_r,i)
-                sx_r = np.append(sx_r,sx[index][index2])
-
-        if(i == 1):
-            count += 1
-            totalLen = int(15*len(sx)/100)
-            for j in range(int(totalLen/n_1)):
-                sy_r = np.append(sy_r,i)
-                sx_r = np.append(sx_r,sx[index][index2])
-                
-        else:
-            sx_r = np.append(sx_r,sx[index][index2])
-            sy_r = np.append(sy_r,i)
-            
-        index2 += 1
-        if(index2 == len(sx[index])):
+    while(np.count_nonzero(sy == 0) > int(0.70*len(sy))):
+        len_sy = len(sy)
+        for i in range(len_sy):
+            if(np.count_nonzero(sy == 0) < int(0.70*len(sy))):
+                break
+            len_syi = len(sy[i])
             index2 = 0
-            index += 1
+            for j in range(len_syi):
+                if(np.count_nonzero(sy == 0) < int(0.70*len(sy))):
+                   break
+                if(sy[i][j] == 1 and np.count_nonzero(sy == 1) < int(0.16*len(sy))):
+                    temp = np.concatenate((sy[0:i],np.array([sy[i]])))
+                    sy = np.concatenate((temp,sy[i::]))
+                    
+                    temp = np.concatenate((sx[0:i],np.array([sx[i]])))
+                    sx = np.concatenate((temp,sx[i::]))
+                if(sy[i][j] == 2 and np.count_nonzero(sy == 2) < int(0.16*len(sy))):
+                    temp = np.concatenate((sy[0:i],np.array([sy[i]])))
+                    sy = np.concatenate((temp,sy[i::]))
+                    
+                    temp = np.concatenate((sx[0:i],np.array([sx[i]])))
+                    sx = np.concatenate((temp,sx[i::]))
+                    
+                index2 += 1
+            index1 += 1
 
-    return sx_r,sy_r
+    return sx,sy
 
 # check if GPU is available
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -68,8 +68,8 @@ def generate_time_lags(df, n_lags):
     df_n = df.copy()
     for n in range(n_lags,0,-1):
         df_n[f"Open{n}"] = df_n["Open"].shift(n)
-        df_n[f"Close{n}"] = df_n["Close"].shift(n)
-    df_n = df_n.iloc[2*n_lags:]
+        df_n[f"Close{n}"] = df_n["Close"].shift(n)  
+    df_n = df_n.iloc[2*n_lags:] 
     return df_n
 
 def feature_label_split(df, target_col):
@@ -90,16 +90,23 @@ from sklearn.model_selection import train_test_split
 
 X_dev, X_test, y_dev, y_test = train_test_split(X.values, y.values, test_size=0.2, shuffle=False)
 X_train, X_val, y_train, y_val = train_test_split(X_dev, y_dev, test_size=0.2, shuffle=False)
-print(X_dev.shape,y_dev.shape)
+print(X_dev.shape,y_dev.shape,np.count_nonzero(X_dev == 0),np.count_nonzero(X_dev == 1),np.count_nonzero(X_dev == 2),np.count_nonzero(y_dev == 0),np.count_nonzero(y_dev == 1),np.count_nonzero(y_dev == 2))
+print(X_test.shape,y_test.shape,np.count_nonzero(X_test == 0),np.count_nonzero(X_test == 1),np.count_nonzero(X_test == 2),np.count_nonzero(y_test == 0),np.count_nonzero(y_test == 1),np.count_nonzero(y_test == 2))
+print(X_train.shape,y_train.shape,np.count_nonzero(X_train == 0),np.count_nonzero(X_train == 1),np.count_nonzero(X_train == 2),np.count_nonzero(y_train == 0),np.count_nonzero(y_train == 1),np.count_nonzero(y_train == 2))
+print(X_val.shape,y_val.shape,np.count_nonzero(X_val == 0),np.count_nonzero(X_val == 1),np.count_nonzero(X_val == 2),np.count_nonzero(y_val == 0),np.count_nonzero(y_val == 1),np.count_nonzero(y_val == 2))
 
 X_dev,y_dev = setBalance(X_dev,y_dev)
 X_test,y_test = setBalance(X_test,y_test)
 X_train,y_train = setBalance(X_train,y_train)
 X_val,y_val = setBalance(X_val,y_val)
 
-print(X_dev.shape,y_dev.shape)
-quit()
-'''print(len(X_dev),len(y_dev))
+print(X_dev.shape,y_dev.shape,np.count_nonzero(X_dev == 0),np.count_nonzero(X_dev == 1),np.count_nonzero(X_dev == 2),np.count_nonzero(y_dev == 0),np.count_nonzero(y_dev == 1),np.count_nonzero(y_dev == 2))
+print(X_test.shape,y_test.shape,np.count_nonzero(X_test == 0),np.count_nonzero(X_test == 1),np.count_nonzero(X_test == 2),np.count_nonzero(y_test == 0),np.count_nonzero(y_test == 1),np.count_nonzero(y_test == 2))
+print(X_train.shape,y_train.shape,np.count_nonzero(X_train == 0),np.count_nonzero(X_train == 1),np.count_nonzero(X_train == 2),np.count_nonzero(y_train == 0),np.count_nonzero(y_train == 1),np.count_nonzero(y_train == 2))
+print(X_val.shape,y_val.shape,np.count_nonzero(X_val == 0),np.count_nonzero(X_val == 1),np.count_nonzero(X_val == 2),np.count_nonzero(y_val == 0),np.count_nonzero(y_val == 1),np.count_nonzero(y_val == 2))
+
+'''
+print(len(X_dev),len(y_dev))
 (np.count_nonzero(y_dev == 2),np.count_nonzero(y_dev == 1),np.count_nonzero(y_dev == 0))
 print(np.count_nonzero(y_test == 2),np.count_nonzero(y_test == 1),np.count_nonzero(y_test == 0))
 print(np.count_nonzero(y_train == 2),np.count_nonzero(y_train == 1),np.count_nonzero(y_train == 0))
@@ -120,7 +127,6 @@ test_features = torch.Tensor(X_test)
 test_targets = torch.Tensor(y_test)
 
 #print(len(X_train),len(y_train))
-
 
 train = TensorDataset(train_features, train_targets)
 val = TensorDataset(val_features, val_targets)
@@ -382,4 +388,7 @@ confMatrix = confusion_matrix(predictions, values)
 
 #print(predictions,values)
 print(confMatrix)
+print(predictions)  
+print(values)
+
 print(np.count_nonzero(values == 0),np.count_nonzero(values == 1),np.count_nonzero(values == 2))
